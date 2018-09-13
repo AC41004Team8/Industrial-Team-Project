@@ -3,6 +3,11 @@
 Specification: https://docs.google.com/document/d/1Ky1N1ouSsxiErAhgnmOTmk8BgzPtx0Ga7FMwSWJnXQM/edit?usp=sharing
 
 
+Quality of software development = 55%
+Project management = 20%
+Communication = 25%
+
+
 Important Dates:
 
   Week 1
