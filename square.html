@@ -17,7 +17,7 @@
     <div id="map" style="height: 400px"></div>
     <script>
       var map = L.Wrld.map("map", "a62da91645f2f4bb847225071539d8d1", {
-        center: [56.459801, -2.977928],
+        center: [56.45991, -2.97316],
         zoom: 17,
         indoorsEnabled: true
       });
@@ -64,8 +64,6 @@
 
 	  }
 
-      var indoorControl = new WrldIndoorControl("widget-container", map);
-	  
       map.indoors.on("indoormapenter", onIndoorMapEntered);
       map.indoors.on("indoormapfloorchange", onIndoorMapFloorChanged)
       map.indoors.on("indoorentityclick", onIndoorEntityClicked);
