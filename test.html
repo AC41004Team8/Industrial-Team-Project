@@ -52,18 +52,46 @@
           indoorMapFloorIndex: currentFloor, 
           autoClose: false, 
           closeOnClick: false,
-		  maxWidth: 50,
-		  maxHeight: 70
+		  maxWidth: 20
         };
-		var cube = '<div class="wrap"><div class="cube"><div class="front"></div><div class="back"></div><div class="top"></div><div class="bottom"></div><div class="left"></div><div class="right"></div></div></div>';
-        var popup = L.popup(popupOptions)
+		var cube = '<div class="wrap"><div class="cube" id="101"><div class="front"></div><div class="back"></div><div class="top"></div><div class="bottom"></div><div class="left"></div><div class="right"></div></div></div>';
+        var cubee = L.DomUtil.create('div');
+		cubee.innerHTML = cube;
+		var popup = L.popup(popupOptions)
           .setLatLng(latLng)
           .addTo(map)
-          .setContent(cube);
+          .setContent(cubee);
         entityIdsToPosition[id] = { "latLng": latLng, "indoorId": currentIndoorMapId, "floorIndex": currentFloor } ;
-
+		colorChange(popup);
+		heightChange(popup);
 	  }
-
+	  
+	  function colorChange(popup)
+	  {
+		//var t = document.getElementById(101).querySelectorAll("div");
+		var cont = popup.getContent();
+		var t = cont.querySelectorAll(".cube > div");
+		for(var i = 0; i < t.length; i++)
+			t[i].style.backgroundColor = "red";
+	  }
+	  
+	  function heightChange(popup)
+	  {
+		//var t = document.getElementById(101).querySelectorAll("div.back, div.right, div.front, div.left");
+		var cont = popup.getContent();
+		var t = cont.querySelectorAll("div.back, div.right, div.front, div.left");
+		for(var i = 0; i < t.length; i++)
+		{
+			//set height in the range of "1em and 5em"
+			t[i].style.height = "5em";
+		}
+		//var tt = document.getElementById(101).querySelectorAll("div.bottom");
+		var tt = cont.querySelectorAll("div.bottom");
+		if (tt)
+			// leave rotation! translation on Z is 1em lower than height
+			tt[0].style.transform = "rotateX(270deg) translateZ(4em)";
+	  }
+	  
       var indoorControl = new WrldIndoorControl("widget-container", map);
 	  
       map.indoors.on("indoormapenter", onIndoorMapEntered);
