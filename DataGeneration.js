@@ -51,11 +51,14 @@ function generateDataForStore(storeName)
 				case "Retail":
 					cRate = Math.floor((Math.random() * 41)+20); //ranges 20-60%
 					break;
-				case "Food and Drinks":
-					cRate = Math.floor((Math.random() * 31)+60);//ranges 60-90%
+				case "Food & Drinks":
+					cRate = Math.floor((Math.random() * 21)+75);//ranges 75-95%
 					break;
 				case "Service":
-					cRate = Math.floor((Math.random() * 41)+50);//ranges 50-90%
+					cRate = Math.floor((Math.random() * 31)+50);//ranges 50-80%
+					break;
+				case "Other":
+					cRate = Math.floor((Math.random() * 31)+35);//ranges 35-65%
 					break;
 			}
 			day.records[j] = new Record(date, peopleIn, cRate);

@@ -69,27 +69,72 @@
 	  function colorChange(popup)
 	  {
 		//var t = document.getElementById(101).querySelectorAll("div");
+		var graphColour = "black";
+		var myRed =  "#da2715";
+		var	myGreen =  "#36d026";
+		var myYellow = " #f7f713 ";
+		
+		var rate = Math.floor((Math.random() * 100) + 1);
+		switch (Math.floor((Math.random() * 4) + 1))
+		{
+			case 1: //Retail
+				if (rate > 50)
+					graphColour = myGreen;
+				else if (rate > 40)
+					graphColour = myYellow;
+				else graphColour = myRed;
+				break;
+			case 2: //F&D
+				if (rate > 88)
+					graphColour = myGreen;
+				else if (rate > 80)
+					graphColour = myYellow;
+				else graphColour = myRed;
+				break;
+			case 3: //Service
+				if (rate > 70)
+					graphColour = myGreen;
+				else if (rate > 60)
+					graphColour = myYellow;
+				else graphColour = myRed;
+				break;
+			case 4: //Other
+				if (rate > 55)
+					graphColour = myGreen;
+				else if (rate > 45)
+					graphColour = myYellow;
+				else graphColour = myRed;
+				break;
+		}
+		
 		var cont = popup.getContent();
 		var t = cont.querySelectorAll(".cube > div");
 		for(var i = 0; i < t.length; i++)
-			t[i].style.backgroundColor = "red";
+			t[i].style.backgroundColor = graphColour;
 	  }
 	  
-	  function heightChange(popup)
+	  function heightChange(popup, people = 0)
 	  {
 		//var t = document.getElementById(101).querySelectorAll("div.back, div.right, div.front, div.left");
+		if (people == 0)
+			people = Math.floor((Math.random() * 81) + 20);
+		if (people > 100)
+			people = 100;
+		var peopleCof = people/20;
 		var cont = popup.getContent();
+		
 		var t = cont.querySelectorAll("div.back, div.right, div.front, div.left");
 		for(var i = 0; i < t.length; i++)
 		{
 			//set height in the range of "1em and 5em"
-			t[i].style.height = "5em";
+			t[i].style.height = "" + peopleCof + "em";
+			//alert(peopleCof);
 		}
 		//var tt = document.getElementById(101).querySelectorAll("div.bottom");
 		var tt = cont.querySelectorAll("div.bottom");
 		if (tt)
-			// leave rotation! translation on Z is 1em lower than height
-			tt[0].style.transform = "rotateX(270deg) translateZ(4em)";
+			// leave rotation! translation on Z should be 1em less than height
+			tt[0].style.transform = "rotateX(270deg) translateZ(" + (peopleCof-1) + "em)";
 	  }
 	  
       var indoorControl = new WrldIndoorControl("widget-container", map);
