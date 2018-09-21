@@ -2,19 +2,41 @@
  * Takes a csv specified from url:"" and puts this into an array called lines
  * 
  */
-$(document).ready(function() {
+// $(document).ready(function() {
+//     $.ajax({
+//         type: "GET",
+//         url: "Dataset.csv",
+//         dataType: "text",
+
+//         success: function(data) {
+//             var processedData = processData(data);
+//             var filtered = filterByTime(processedData, 800);
+//             console.log(filtered);
+//         }
+//      });
+// });
+
+/**
+ * 
+ * @param {*} time 
+ */
+function ajaxRequest(timeFromSlider){
+
+   // var timeFromSlider = this.timeFromSlider;
+    var timeToFilter = timeFromSlider.concat("00") ;
+
     $.ajax({
         type: "GET",
         url: "Dataset.csv",
-        dataType: "text",
-
-        success: function(data) {
-            var processedData = processData(data);
-            var filtered = filterByTime(processedData, 0800);
-            console.log(filtered);
-        }
-     });
-});
+                dataType: "text",
+        
+                success: function(data) {
+                    var processedData = processData(data);
+                    var filtered = filterByTime(processedData, timeToFilter);
+                    console.log(filtered);
+                }
+             });
+}
 
 var lines = [];
 
@@ -28,9 +50,14 @@ function processData(allText) {
             lines.push({
                 "Time": data[0],
                 "Id": data[1],
-                "Lat": data[2],
-                "Long": data[3],
-                "Alt": data[4],
+
+                 "Lat": data[2],
+                 "Long": data[3],
+                 "Alt": data[4],
+
+                //"latLng": {"Lat": data[1], "Long": data[2], "Alt": data[4] }
+
+
                 "FloorIndex": data[5],
                 "Name": data[6],
                 "Footfall": data[7],
