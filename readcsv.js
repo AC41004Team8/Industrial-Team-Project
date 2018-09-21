@@ -7,7 +7,12 @@ $(document).ready(function() {
         type: "GET",
         url: "Dataset.csv",
         dataType: "text",
-        success: function(data) {processData(data);}
+
+        success: function(data) {
+            var processedData = processData(data);
+            var filtered = filterByTime(processedData, 0800);
+            console.log(filtered);
+        }
      });
 });
 
@@ -16,76 +21,29 @@ var lines = [];
 function processData(allText) {
     var allTextLines = allText.split(/\r\n|\n/);
     var headers = allTextLines[0].split(',');
-    //var lines = [];
+    var lines = new Array();
 
     for (var i=1; i<allTextLines.length; i++) {
         var data = allTextLines[i].split(',');
-        if (data.length == headers.length) {
+            lines.push({
+                "Time": data[0],
+                "Id": data[1],
+                "Lat": data[2],
+                "Long": data[3],
+                "Alt": data[4],
+                "FloorIndex": data[5],
+                "Name": data[6],
+                "Footfall": data[7],
+                "Conversion": data[8],
+                "Colour": ""
+            });
+        }
+    return lines;
+}
 
-            var tarr = [];
-            for (var j=0; j<headers.length; j++) {
-                //tarr.push(headers[j]+":"+data[j]);
-                tarr.push(data[j]);
-            }
-
-            lines.push(tarr);
-        }
-    }
-
-    //alert(lines);
-
-    console.log(lines);
-
-    //document.getElementById("line").innerHTML = lines[1].toString();
-    //var big2D;
-
-
-
-    for (var i=1; i<lines.length; i++)
-    {
-        if(lines[i][0] == "800")
-        {
-            array8.push(lines[i]);    
-        }
-        else if(lines[i][0] == "900")
-        {
-            array9.push(lines[i]);    
-        }
-        else if(lines[i][0] == "1000")
-        {
-            array10.push(lines[i]);    
-        }
-        else if(lines[i][0] == "1100")
-        {
-            array11.push(lines[i]);    
-        }
-        else if(lines[i][0] == "1200")
-        {
-            array12.push(lines[i]);    
-        }
-        else if(lines[i][0] == "1300")
-        {
-            array13.push(lines[i]);    
-        }
-        else if(lines[i][0] == "1400")
-        {
-            array14.push(lines[i]);    
-        }
-        else if(lines[i][0] == "1500")
-        {
-            array15.push(lines[i]);    
-        }
-        else if(lines[i][0] == "1600")
-        {
-            array16.push(lines[i]);    
-        }
-        else if(lines[i][0] == "1700")
-        {
-            array17.push(lines[i]);    
-        }
-        
-    }
-    return(lines);
-
-
+function filterByTime(processedData, time) {
+    var things = $.grep(processedData, function (shop) {
+        return (shop.Time == time);
+    });
+    return things;
 }
