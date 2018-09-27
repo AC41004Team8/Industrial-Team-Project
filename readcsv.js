@@ -25,6 +25,8 @@ function ajaxRequest(timeFromSlider){
    // var timeFromSlider = this.timeFromSlider;
     var timeToFilter = timeFromSlider.concat("00") ;
 
+    map.closePopup();
+
     $.ajax({
         type: "GET",
         url: "Dataset.csv",
