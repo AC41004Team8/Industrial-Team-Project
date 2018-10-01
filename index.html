@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>AC41004Team8</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	
+  <script src="https://cdn-webgl.wrld3d.com/wrldjs/dist/latest/wrld.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css" rel="stylesheet" />
+  
+
+  <script src="https://cdn-webgl.wrld3d.com/wrldjs/dist/latest/wrld.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css" rel="stylesheet" />
+
+	<link href="https://cdn-webgl.wrld3d.com/wrldjs/addons/resources/latest/css/wrld.css" rel="stylesheet" />
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"></script>
+	<script src="https://cdn-webgl.wrld3d.com/wrldjs/addons/indoor_control/latest/indoor_control.js"></script>
+  
+  <!-- Referencing Style Sheets -->
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <link rel="stylesheet" type="text/css" href="slider.css" />
+  
+</head>
+<body>
+
+<!-- Creating Navigation Bar -->
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Overgate Customer Conversion</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li class="active"><a href="#">Home</a></li>
+    </ul>
+  </div>
+</nav>
+  
+<!-- Text Headings and Paragraphs To Describe WHAT & WHY -->
+  <div class="container">
+  <h2>What?</h2>
+  <p>We are going to create a dynamic, visual display of purchase data which sits on top of WRLD3D’s Overgate map.<br> 
+  <br>A 3D "bar" will be displayed for each shop. The bar's colour represents the hourly conversion rate for the shop in question:
+  <br><br> <ul>Target Met = <font color="green">Green</font>
+  <br> Near Target = <font color="orange">Amber</font>
+  <br> Target Not Met = <font color="red">Red</font></ul>
+    
+  <br>The height of the bar determines the number of customers who entered the shop during the selected time period (the taller the bar the more people).
+  <br><br>Each shop will be categorised into three types:
+  <br><br><ul>Clothing (40% expected conversion rate)
+  <br>Food & Drink (85% expected conversion rate)
+  <br>Services (65% expected conversion rate)
+  <br>Other (50% expected conversion rate)</ul>
+  </p>
+  </div>
+  
+  <div class="container">
+	  <br>
+  <h2>Why?</h2>
+  <br>
+  <blockquote>
+  <p>“Should Overgate charge a higher fixed rate rent or a lower base rent along with a certain % of a business’ revenue?,
+  <br> Which is more lucrative?"</p>
+  <footer>The question we hope to answer</footer>
+  </blockquote>
+   
+  <br> The reason we are making this solution is to allow Overgate to maximize their potential profits by ensuring their space is as busy and lucrative as possible.
+    
+  </p>
+  </div>
+
+  <!-- Load WRLD3D Map -->
+<div class="container">
+	<br>
+  <h2>Interactive WRLD Map</h2>
+<br>
+</div>
+
+<div style="position: relative">
+
+  <div id="widget-container" class="wrld-widget-container"></div>
+
+
+  <div id="map" style="height: 600px"></div>
+
+  <div align="center">
+    <div class="slidecontainer">
+      <!-- timeline slider day runs from 8am to 5pm (17:00) -->
+      <input type="range" min="8" max="17" value="8" class="slider" id="myRange">
+      <p><h4>Drag The Green Slider Left and Right</h4></p><br>
+      <p><h1>Focus time: <span id="demo"></span>:00</h1></p><br>
+    </div>
+
+    <label id="lblFootfall">Enter The Overgate to see store with largest footfall</label> <br>
+    <label id="lblConV">and the store with the highest conversion for a given hour</label> <br><br>
+  </div>
+
+  <!--our data fetching script-->
+  <script src="readcsv.js"></script>
+
+  <!-- backend map related scripts -->
+  <script>
+      var latLngTest = {
+        lat: "56.45941030245072",
+        lng: "-2.9742197051753094",
+        alt: "3.280236446298659"
+    };
+    
+    var timeOfDay;
+    
+    //display time of day from slider 
+    var slider = document.getElementById("myRange");
+    var output = document.getElementById("demo");
+    var allPopups = [];
+    output.innerHTML = slider.value;
+    //set value of timeOfDay to slider.value
+    timeOfDay = slider.value;
+    
+    function clearPopups() {
+        for (var i = 0; i < allPopups.length; i++) {
+            allPopups[i].remove();
+        }
+        allPopups = new Array();
+    }
+    
+    slider.oninput = function () {
+        output.innerHTML = this.value;
+
+        var timeWithZero = slider.value.concat("00");
+        filtered = filterByTime(timeWithZero);
+
+        clearPopups();
+        generateAllBars();
+    }
+    
+    //display map
+    var map = L.Wrld.map("map", "21f12fd6948f92212351075e8ae46b53", {
+        center: [56.45991, -2.97316],
+        zoom: 17,
+        indoorsEnabled: true
+    
+    });
+    
+    var indoorControl = new WrldIndoorControl("widget-container", map);
+    var currentIndoorMapId;
+    var currentFloor;
+    var entityIdsToPosition = {};
+    
+    var lastMouseDown;
+    
+    
+    function onMouseDown(event) {
+        lastMouseDown = event.latlng;
+    }
+    
+    function onIndoorEntityClicked(event) {
+        event.ids.forEach(createBar);
+    }
+    
+    //When the shop is entered, generate all bars
+    function onIndoorMapEntered(event) {
+        currentIndoorMapId = event.indoorMap.getIndoorMapId();
+        currentFloor = map.indoors.getFloor().getFloorIndex();
+        while (filtered == undefined || filtered == null) {
+            console.log("DATA SET UNDEFINED");
+        }
+        generateAllBars();
+    
+    }
+    
+    //When the window loads, perform Ajax request
+    window.onload = function () {
+        ajaxRequest();
+        var timeWithZero = slider.value.concat("00");
+        filtered = filterByTime(timeWithZero);
+    
+    }
+    
+    //When changing floors, Generate all bars
+    function onIndoorMapFloorChanged() {
+        clearPopups();
+        currentFloor = map.indoors.getFloor().getFloorIndex();
+        var timeWithZero = slider.value.concat("00");
+        filtered = filterByTime(timeWithZero);
+        generateAllBars();
+    }
+    
+    var latLngArray = [];
+    
+    var topConvRate = 0;
+    var topConvRateName = "ERROR";
+    var topFootfall = 0;
+    var topFootfallName = "ERROR";
+    
+    
+    //Function which generates all the 3D bars, with thelocation,  colour and height depending on data from the dataset
+    function generateAllBars() {
+        latLngArray = [];
+    
+        topConvRate = 0;
+        topConvRateName = "ERROR";
+        topFootfall = 0;
+        topFootfallName = "ERROR";
+    
+        for (var i = 1; i < filtered.length; i++) {
+            var currentLine = filtered[i];
+    
+            if (map.indoors.getFloor().getFloorIndex() == 0 && currentLine.Alt < 4) {
+                createBar(255, currentLine.Lat, currentLine.Long, currentLine.Alt, currentLine.ConversionRate, currentLine.Category,
+                    currentLine.Footfall);
+    
+                if (Number(currentLine.ConversionRate) > Number(topConvRate)) {
+                    topConvRate = currentLine.ConversionRate;
+                    topConvRateName = currentLine.Name;
+    
+                }
+    
+                if (Number(currentLine.Footfall) > Number(topFootfall)) {
+                    topFootfall = currentLine.Footfall;
+                    topFootfallName = currentLine.Name;
+                }
+    
+                document.getElementById('lblFootfall').innerHTML = topFootfallName + ' has the largest footfall at the current time with: ' + topFootfall;
+                document.getElementById('lblConV').innerHTML = topConvRateName + ' has the highest conversion rate at the current time with: ' + topConvRate;
+    
+            } else if (map.indoors.getFloor().getFloorIndex() == 1 && currentLine.Alt > 4) {
+                createBar(255, currentLine.Lat, currentLine.Long, currentLine.Alt, currentLine.ConversionRate, currentLine.Category,
+                    currentLine.Footfall);
+    
+                if (currentLine.ConversionRate > topConvRate) {
+                    topConvRate = currentLine.ConversionRate;
+                    topConvRateName = currentLine.Name;
+                }
+    
+                if (currentLine.Footfall > topFootfall) {
+                    topFootfall = currentLine.Footfall;
+                    topFootfallName = currentLine.Name;
+                }
+    
+                document.getElementById('lblFootfall').innerHTML = topFootfallName + ' has the largest footfall at the current time with: ' + topFootfall;
+                document.getElementById('lblConV').innerHTML = topConvRateName + ' has the highest conversion rate at the current time with: ' + topConvRate;
+    
+            }
+     
+        }
+    
+    }
+    
+    //Function to create a bar
+    function createBar(id, lat, lng, alt, conv, catg, footfall) {
+
+        var latLngTest2 = {
+            "lat": lat,
+            "lng": lng,
+            "alt": alt
+        };
+        var latLng = latLngTest2;
+    
+        var popupOptions = {
+            indoorMapId: currentIndoorMapId,
+            indoorMapFloorIndex: currentFloor,
+            autoClose: false,
+            closeOnClick: false,
+            maxWidth: 20
+        };
+        var cube =
+            '<div class="wrap"><div class="cube" id="101"><div class="front"></div><div class="back"></div><div class="top"></div><div class="bottom"></div><div class="left"></div><div class="right"></div></div></div>';
+        var cubee = L.DomUtil.create('div');
+        cubee.innerHTML = cube;
+        var popup = L.popup(popupOptions)
+            .setLatLng(latLng)
+            .addTo(map)
+            .setContent(cubee);
+        allPopups.push(popup);
+
+        colorChange(popup, conv, catg);
+        heightChange(popup, footfall);
+    }
+    
+    //Function to set color of bar
+    function colorChange(popup, conv, catg) {
+
+        var graphColour = "black";
+        var myRed = "#da2715";
+        var myGreen = "#36d026";
+        var myYellow = " #f7f713 ";
+    
+
+        var rate = conv;
+        switch (catg) {
+            case "Clothing": //Retail
+                if (rate > 0.40) {
+                    graphColour = myGreen;
+                } else if (rate > 0.35)
+                    graphColour = myYellow;
+                else graphColour = myRed;
+                break;
+            case "Food & Drink": //F&D
+                if (rate > 0.85)
+                    graphColour = myGreen;
+                else if (rate > 0.80)
+                    graphColour = myYellow;
+                else graphColour = myRed;
+                break;
+            case "Service": //Service
+                if (rate > 0.65)
+                    graphColour = myGreen;
+                else if (rate > 0.60)
+                    graphColour = myYellow;
+                else graphColour = myRed;
+                break;
+            case "Other": //Other
+                if (rate > 0.50)
+                    graphColour = myGreen;
+                else if (rate > 0.45)
+                    graphColour = myYellow;
+                else graphColour = myRed;
+                break;
+        }
+    
+        var cont = popup.getContent();
+        var t = cont.querySelectorAll(".cube > div");
+        for (var i = 0; i < t.length; i++)
+            t[i].style.backgroundColor = graphColour;
+    }
+    
+    //Function to change height of bar
+    function heightChange(popup, people = 0) {
+        if (people > 0)
+            var peopleCof = people / 20;
+        else var peopleCof = 20;
+        var cont = popup.getContent();
+    
+        var t = cont.querySelectorAll("div.back, div.right, div.front, div.left");
+        for (var i = 0; i < t.length; i++) {
+            //set height in the range of "1em and 5em"
+            t[i].style.height = "" + peopleCof + "em";
+            //alert(peopleCof);
+        }
+        //var tt = document.getElementById(101).querySelectorAll("div.bottom");
+        var tt = cont.querySelectorAll("div.bottom");
+        if (tt)
+            // leave rotation! translation on Z should be 1em less than height
+            tt[0].style.transform = "rotateX(270deg) translateZ(" + (peopleCof - 1) + "em)";
+    }
+    
+    
+    map.indoors.on("indoormapenter", onIndoorMapEntered);
+    map.indoors.on("indoormapfloorchange", onIndoorMapFloorChanged)
+    map.indoors.on("indoorentityclick", onIndoorEntityClicked);
+    map.on("mousedown", onMouseDown);
+    
+  </script>
+
+  <!--<script src="maprender.js"></script>-->
+  <!-- beware -->
+  
+</div>
+
+  
+</body>
+</html>
+
+
